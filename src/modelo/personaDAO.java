@@ -110,10 +110,8 @@ public class personaDAO {
 		archivo.delete();
 		// Recorre los elementos de la lista
 		for (persona p : personas) {
-			// Instancia el DAO
-			new personaDAO(p);
-			// Escribe en el archivo
-			escribirArchivo();
+			// Instancia el DAO y escribe en el archivo
+			new personaDAO(p).escribirArchivo();
 		}
 	}
 }

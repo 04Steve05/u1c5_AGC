@@ -161,9 +161,9 @@ public class logica_ventana implements ActionListener, ListSelectionListener, It
 	            JOptionPane.showMessageDialog(delegado, "Todos los campos deben ser llenados!!!");
 	        }
 	    } else if (e.getSource() == delegado.btn_eliminar) {
-	        // Lugar para implementar la funcionalidad de eliminar un contacto.
+	        eliminarContacto();
 	    } else if (e.getSource() == delegado.btn_modificar) {
-	        // Lugar para implementar la funcionalidad de modificar un contacto.
+	        modificarContacto();
 	    } else if (e.getSource() == delegado.btn_exportar) {
 	        exportarCSV();
 	    }
@@ -421,5 +421,74 @@ public class logica_ventana implements ActionListener, ListSelectionListener, It
 	            menuContextual.show(e.getComponent(), e.getX(), e.getY());
 	        }
 	    });
+	}
+
+	private void eliminarContacto() {
+	    int fila = delegado.tabla_contactos.getSelectedRow();
+	    if (fila >= 0) {
+	        int confirmacion = JOptionPane.showConfirmDialog(delegado,
+	            "¿Está seguro de eliminar este contacto?",
+	            "Confirmar eliminación",
+	            JOptionPane.YES_NO_OPTION);
+
+	        if (confirmacion == JOptionPane.YES_OPTION) {
+	            String nombre = delegado.tabla_contactos.getValueAt(fila, 0).toString();
+
+	            for (int i = 0; i < contactos.size(); i++) {
+	                if (contactos.get(i).getNombre().equals(nombre)) {
+	                    contactos.remove(i);
+	                    break;
+	                }
+	            }
+
+	            try {
+	                new personaDAO(new persona()).actualizarContactos(contactos);
+	                limpiarCampos();
+	                JOptionPane.showMessageDialog(delegado, "Contacto eliminado correctamente");
+	            } catch (IOException ex) {
+	                JOptionPane.showMessageDialog(delegado, "Error al eliminar el contacto: " + ex.getMessage());
+	            }
+	        }
+	    } else {
+	        JOptionPane.showMessageDialog(delegado, "Seleccione un contacto de la tabla para eliminar");
+	    }
+	}
+
+	private void modificarContacto() {
+	    int fila = delegado.tabla_contactos.getSelectedRow();
+	    if (fila >= 0) {
+	        incializacionCampos();
+
+	        if ((!nombres.equals("")) && (!telefono.equals("")) && (!email.equals(""))) {
+	            if ((!categoria.equals("Elija una Categoria")) && (!categoria.equals(""))) {
+	                String nombreOriginal = delegado.tabla_contactos.getValueAt(fila, 0).toString();
+
+	                for (int i = 0; i < contactos.size(); i++) {
+	                    if (contactos.get(i).getNombre().equals(nombreOriginal)) {
+	                        contactos.get(i).setNombre(nombres);
+	                        contactos.get(i).setTelefono(telefono);
+	                        contactos.get(i).setEmail(email);
+	                        contactos.get(i).setCategoria(categoria);
+	                        contactos.get(i).setFavorito(favorito);
+	                        break;
+	                    }
+	                }
+
+	                try {
+	                    new personaDAO(new persona()).actualizarContactos(contactos);
+	                    limpiarCampos();
+	                    JOptionPane.showMessageDialog(delegado, "Contacto modificado correctamente");
+	                } catch (IOException ex) {
+	                    JOptionPane.showMessageDialog(delegado, "Error al modificar el contacto: " + ex.getMessage());
+	                }
+	            } else {
+	                JOptionPane.showMessageDialog(delegado, "Elija una Categoria!!!");
+	            }
+	        } else {
+	            JOptionPane.showMessageDialog(delegado, "Todos los campos deben ser llenados!!!");
+	        }
+	    } else {
+	        JOptionPane.showMessageDialog(delegado, "Seleccione un contacto de la tabla para modificar");
+	    }
 	}
 }
