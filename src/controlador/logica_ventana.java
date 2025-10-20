@@ -14,12 +14,18 @@ import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JFileChooser;
 import javax.swing.SwingWorker;
+import javax.swing.KeyStroke;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import java.awt.event.InputEvent;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JComboBox;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
+import javax.swing.JPopupMenu;
+import javax.swing.JMenuItem;
 import javax.swing.ListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -34,6 +40,7 @@ public class logica_ventana implements ActionListener, ListSelectionListener, It
 	private persona persona; // Objeto de tipo persona, que representa un contacto.
 	private List<persona> contactos; // Lista de objetos persona que representa todos los contactos.
 	private boolean favorito = false; // Booleano que indica si un contacto es favorito.
+	private JPopupMenu menuContextual;
 
 	// Constructor que inicializa la clase y configura los escuchadores de eventos para los componentes de la GUI.
 	public logica_ventana(ventana delegado) {
@@ -65,6 +72,9 @@ public class logica_ventana implements ActionListener, ListSelectionListener, It
 	            }
 	        }
 	    });
+
+	    configurarAtajosTeclado();
+	    configurarMenuContextual();
 	}
 
 	// Método privado para inicializar las variables con los valores ingresados en la GUI.
@@ -301,5 +311,115 @@ public class logica_ventana implements ActionListener, ListSelectionListener, It
 	            JOptionPane.showMessageDialog(delegado, "Error al exportar: " + ex.getMessage());
 	        }
 	    }
+	}
+
+	private void configurarAtajosTeclado() {
+	    // Ctrl+N para limpiar campos
+	    Action accionNuevo = new AbstractAction() {
+	        public void actionPerformed(ActionEvent e) {
+	            limpiarCampos();
+	        }
+	    };
+	    delegado.getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW)
+	        .put(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.CTRL_DOWN_MASK), "nuevo");
+	    delegado.getRootPane().getActionMap().put("nuevo", accionNuevo);
+
+	    // Ctrl+S para agregar contacto
+	    Action accionGuardar = new AbstractAction() {
+	        public void actionPerformed(ActionEvent e) {
+	            delegado.btn_add.doClick();
+	        }
+	    };
+	    delegado.getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW)
+	        .put(KeyStroke.getKeyStroke(KeyEvent.VK_S, InputEvent.CTRL_DOWN_MASK), "guardar");
+	    delegado.getRootPane().getActionMap().put("guardar", accionGuardar);
+
+	    // Ctrl+E para exportar CSV
+	    Action accionExportar = new AbstractAction() {
+	        public void actionPerformed(ActionEvent e) {
+	            exportarCSV();
+	        }
+	    };
+	    delegado.getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW)
+	        .put(KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.CTRL_DOWN_MASK), "exportar");
+	    delegado.getRootPane().getActionMap().put("exportar", accionExportar);
+
+	    // Ctrl+M para modificar
+	    Action accionModificar = new AbstractAction() {
+	        public void actionPerformed(ActionEvent e) {
+	            delegado.btn_modificar.doClick();
+	        }
+	    };
+	    delegado.getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW)
+	        .put(KeyStroke.getKeyStroke(KeyEvent.VK_M, InputEvent.CTRL_DOWN_MASK), "modificar");
+	    delegado.getRootPane().getActionMap().put("modificar", accionModificar);
+
+	    // Delete para eliminar
+	    Action accionEliminar = new AbstractAction() {
+	        public void actionPerformed(ActionEvent e) {
+	            delegado.btn_eliminar.doClick();
+	        }
+	    };
+	    delegado.getRootPane().getInputMap(javax.swing.JComponent.WHEN_IN_FOCUSED_WINDOW)
+	        .put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0), "eliminar");
+	    delegado.getRootPane().getActionMap().put("eliminar", accionEliminar);
+	}
+
+	private void configurarMenuContextual() {
+	    menuContextual = new JPopupMenu();
+
+	    JMenuItem itemCargar = new JMenuItem("Cargar contacto");
+	    itemCargar.addActionListener(new ActionListener() {
+	        public void actionPerformed(ActionEvent e) {
+	            cargarContactoDesdeTabla();
+	        }
+	    });
+	    menuContextual.add(itemCargar);
+
+	    JMenuItem itemEliminar = new JMenuItem("Eliminar");
+	    itemEliminar.addActionListener(new ActionListener() {
+	        public void actionPerformed(ActionEvent e) {
+	            delegado.btn_eliminar.doClick();
+	        }
+	    });
+	    menuContextual.add(itemEliminar);
+
+	    menuContextual.addSeparator();
+
+	    JMenuItem itemExportar = new JMenuItem("Exportar a CSV");
+	    itemExportar.addActionListener(new ActionListener() {
+	        public void actionPerformed(ActionEvent e) {
+	            exportarCSV();
+	        }
+	    });
+	    menuContextual.add(itemExportar);
+
+	    JMenuItem itemLimpiar = new JMenuItem("Limpiar campos");
+	    itemLimpiar.addActionListener(new ActionListener() {
+	        public void actionPerformed(ActionEvent e) {
+	            limpiarCampos();
+	        }
+	    });
+	    menuContextual.add(itemLimpiar);
+
+	    delegado.tabla_contactos.addMouseListener(new MouseAdapter() {
+	        public void mousePressed(MouseEvent e) {
+	            if (e.isPopupTrigger()) {
+	                mostrarMenu(e);
+	            }
+	        }
+	        public void mouseReleased(MouseEvent e) {
+	            if (e.isPopupTrigger()) {
+	                mostrarMenu(e);
+	            }
+	        }
+	        private void mostrarMenu(MouseEvent e) {
+	            int fila = delegado.tabla_contactos.rowAtPoint(e.getPoint());
+	            if (fila >= 0) {
+	                delegado.tabla_contactos.setRowSelectionInterval(fila, fila);
+	            }
+	            menuContextual.show(e.getComponent(), e.getX(), e.getY());
+	        }
+	    });
 	}
 }

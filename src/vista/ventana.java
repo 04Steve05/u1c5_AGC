@@ -20,6 +20,7 @@ import javax.swing.JList;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableRowSorter;
 import javax.swing.JProgressBar;
 import java.awt.BorderLayout;
 
@@ -181,6 +182,7 @@ public class ventana extends JFrame {
 		String[] columnas = {"Nombre", "Teléfono", "Email", "Categoría", "Favorito"};
 		modeloTabla = new DefaultTableModel(columnas, 0);
 		tabla_contactos = new JTable(modeloTabla);
+		tabla_contactos.setAutoCreateRowSorter(true);
 		JScrollPane scrollTabla = new JScrollPane(tabla_contactos);
 		scrollTabla.setBounds(25, 410, 971, 200);
 		panelContactos.add(scrollTabla);
