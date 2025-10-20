@@ -5,9 +5,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.JFileChooser;
+import javax.swing.SwingWorker;
 
 import javax.swing.DefaultListModel;
 import javax.swing.JComboBox;
@@ -39,11 +45,26 @@ public class logica_ventana implements ActionListener, ListSelectionListener, It
 	    this.delegado.btn_add.addActionListener(this);
 	    this.delegado.btn_eliminar.addActionListener(this);
 	    this.delegado.btn_modificar.addActionListener(this);
+	    this.delegado.btn_exportar.addActionListener(this);
 	    // Registra los ListSelectionListener para la lista de contactos.
 	    this.delegado.lst_contactos.addListSelectionListener(this);
 	    // Registra los ItemListener para el JComboBox de categoría y el JCheckBox de favoritos.
 	    this.delegado.cmb_categoria.addItemListener(this);
 	    this.delegado.chb_favorito.addItemListener(this);
+
+	    this.delegado.txt_buscar.addKeyListener(new KeyAdapter() {
+	        public void keyReleased(KeyEvent e) {
+	            buscarContacto();
+	        }
+	    });
+
+	    this.delegado.tabla_contactos.addMouseListener(new MouseAdapter() {
+	        public void mouseClicked(MouseEvent e) {
+	            if (e.getClickCount() == 2) {
+	                cargarContactoDesdeTabla();
+	            }
+	        }
+	    });
 	}
 
 	// Método privado para inicializar las variables con los valores ingresados en la GUI.
@@ -57,6 +78,9 @@ public class logica_ventana implements ActionListener, ListSelectionListener, It
 	// Método privado para cargar los contactos almacenados desde un archivo.
 	private void cargarContactosRegistrados() {
 		 try {
+		        delegado.barraProgreso.setVisible(true);
+		        delegado.barraProgreso.setValue(0);
+
 		        // Lee los contactos almacenados utilizando una instancia de personaDAO.
 		        contactos = new personaDAO(new persona()).leerArchivo();
 		        DefaultListModel modelo = new DefaultListModel();
@@ -66,9 +90,19 @@ public class logica_ventana implements ActionListener, ListSelectionListener, It
 		        }
 		        // Establece el modelo actualizado en la lista de contactos de la GUI.
 		        delegado.lst_contactos.setModel(modelo);
+		        delegado.barraProgreso.setValue(50);
+
+		        cargarTabla();
+		        delegado.barraProgreso.setValue(75);
+
+		        actualizarEstadisticas();
+		        delegado.barraProgreso.setValue(100);
+
+		        delegado.barraProgreso.setVisible(false);
 		    } catch (IOException e) {
 		        // Muestra un mensaje de error si ocurre una excepción al cargar los contactos.
 		        JOptionPane.showMessageDialog(delegado, "Existen problemas al cargar todos los contactos");
+		        delegado.barraProgreso.setVisible(false);
 		    }
 	}
 
@@ -120,6 +154,8 @@ public class logica_ventana implements ActionListener, ListSelectionListener, It
 	        // Lugar para implementar la funcionalidad de eliminar un contacto.
 	    } else if (e.getSource() == delegado.btn_modificar) {
 	        // Lugar para implementar la funcionalidad de modificar un contacto.
+	    } else if (e.getSource() == delegado.btn_exportar) {
+	        exportarCSV();
 	    }
 	}
 
@@ -164,6 +200,106 @@ public class logica_ventana implements ActionListener, ListSelectionListener, It
 	        // Verifica si el evento proviene del JCheckBox de favorito.
 	        favorito = delegado.chb_favorito.isSelected();
 	        // Obtiene el estado seleccionado del JCheckBox y actualiza el estado de favorito en la variable "favorito".
+	    }
+	}
+
+	private void cargarTabla() {
+	    delegado.modeloTabla.setRowCount(0);
+	    for (persona p : contactos) {
+	        if (!p.getNombre().equals("NOMBRE")) {
+	            Object[] fila = {
+	                p.getNombre(),
+	                p.getTelefono(),
+	                p.getEmail(),
+	                p.getCategoria(),
+	                p.isFavorito() ? "Sí" : "No"
+	            };
+	            delegado.modeloTabla.addRow(fila);
+	        }
+	    }
+	}
+
+	private void actualizarEstadisticas() {
+	    int total = 0;
+	    int favoritos = 0;
+	    int familia = 0;
+	    int amigos = 0;
+	    int trabajo = 0;
+
+	    for (persona p : contactos) {
+	        if (!p.getNombre().equals("NOMBRE")) {
+	            total++;
+	            if (p.isFavorito()) favoritos++;
+	            if (p.getCategoria().equals("Familia")) familia++;
+	            if (p.getCategoria().equals("Amigos")) amigos++;
+	            if (p.getCategoria().equals("Trabajo")) trabajo++;
+	        }
+	    }
+
+	    delegado.lbl_total_contactos.setText(String.valueOf(total));
+	    delegado.lbl_total_favoritos.setText(String.valueOf(favoritos));
+	    delegado.lbl_total_familia.setText("Familia: " + familia);
+	    delegado.lbl_total_amigos.setText("Amigos: " + amigos);
+	    delegado.lbl_total_trabajo.setText("Trabajo: " + trabajo);
+	}
+
+	private void buscarContacto() {
+	    String busqueda = delegado.txt_buscar.getText().toLowerCase();
+	    delegado.modeloTabla.setRowCount(0);
+
+	    for (persona p : contactos) {
+	        if (!p.getNombre().equals("NOMBRE")) {
+	            if (p.getNombre().toLowerCase().contains(busqueda) ||
+	                p.getTelefono().contains(busqueda) ||
+	                p.getEmail().toLowerCase().contains(busqueda)) {
+	                Object[] fila = {
+	                    p.getNombre(),
+	                    p.getTelefono(),
+	                    p.getEmail(),
+	                    p.getCategoria(),
+	                    p.isFavorito() ? "Sí" : "No"
+	                };
+	                delegado.modeloTabla.addRow(fila);
+	            }
+	        }
+	    }
+	}
+
+	private void cargarContactoDesdeTabla() {
+	    int fila = delegado.tabla_contactos.getSelectedRow();
+	    if (fila >= 0) {
+	        delegado.txt_nombres.setText(delegado.tabla_contactos.getValueAt(fila, 0).toString());
+	        delegado.txt_telefono.setText(delegado.tabla_contactos.getValueAt(fila, 1).toString());
+	        delegado.txt_email.setText(delegado.tabla_contactos.getValueAt(fila, 2).toString());
+	        delegado.cmb_categoria.setSelectedItem(delegado.tabla_contactos.getValueAt(fila, 3).toString());
+	        delegado.chb_favorito.setSelected(delegado.tabla_contactos.getValueAt(fila, 4).toString().equals("Sí"));
+	    }
+	}
+
+	private void exportarCSV() {
+	    JFileChooser fileChooser = new JFileChooser();
+	    fileChooser.setDialogTitle("Guardar archivo CSV");
+	    int resultado = fileChooser.showSaveDialog(delegado);
+
+	    if (resultado == JFileChooser.APPROVE_OPTION) {
+	        String ruta = fileChooser.getSelectedFile().getAbsolutePath();
+	        if (!ruta.endsWith(".csv")) {
+	            ruta += ".csv";
+	        }
+
+	        try {
+	            java.io.FileWriter fw = new java.io.FileWriter(ruta);
+	            fw.write("Nombre,Teléfono,Email,Categoría,Favorito\n");
+	            for (persona p : contactos) {
+	                if (!p.getNombre().equals("NOMBRE")) {
+	                    fw.write(p.datosContacto().replace(";", ",") + "\n");
+	                }
+	            }
+	            fw.close();
+	            JOptionPane.showMessageDialog(delegado, "Archivo exportado correctamente");
+	        } catch (Exception ex) {
+	            JOptionPane.showMessageDialog(delegado, "Error al exportar: " + ex.getMessage());
+	        }
 	    }
 	}
 }
