@@ -17,6 +17,11 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JButton;
 import javax.swing.JList;
+import javax.swing.JTabbedPane;
+import javax.swing.JTable;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.JProgressBar;
+import java.awt.BorderLayout;
 
 public class ventana extends JFrame {
 
@@ -32,6 +37,18 @@ public class ventana extends JFrame {
 	public JButton btn_eliminar; // Botón para eliminar un contacto.
 	public JList lst_contactos; // Lista para mostrar los contactos.
 	public JScrollPane scrLista; // Panel de desplazamiento para la lista de contactos.
+
+	public JTabbedPane tabbedPane;
+	public JTable tabla_contactos;
+	public DefaultTableModel modeloTabla;
+	public JProgressBar barraProgreso;
+
+	public JLabel lbl_total_contactos;
+	public JLabel lbl_total_favoritos;
+	public JLabel lbl_total_familia;
+	public JLabel lbl_total_amigos;
+	public JLabel lbl_total_trabajo;
+	public JButton btn_exportar;
 
 	/**
 	 * Launch the application.
@@ -65,64 +82,70 @@ public class ventana extends JFrame {
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5)); // Establece un borde vacío alrededor del panel.
 
 		setContentPane(contentPane); // Establece el panel de contenido como el panel principal de la ventana.
-		contentPane.setLayout(null); // Configura el diseño del panel como nulo para posicionar manualmente los componentes.
+		contentPane.setLayout(new BorderLayout());
+
+		tabbedPane = new JTabbedPane();
+		contentPane.add(tabbedPane, BorderLayout.CENTER);
+
+		JPanel panelContactos = new JPanel();
+		panelContactos.setLayout(null);
 		
 		// Creación y configuración de etiquetas para los campos de entrada.
 		JLabel lbl_etiqueta1 = new JLabel("NOMBRES:"); // Etiqueta para nombres.
 		lbl_etiqueta1.setBounds(25, 41, 89, 13); // Define la posición y tamaño de la etiqueta.
 		lbl_etiqueta1.setFont(new Font("Tahoma", Font.BOLD, 15)); // Configura la fuente de la etiqueta.
-		contentPane.add(lbl_etiqueta1); // Agrega la etiqueta al panel de contenido.
-		
+		panelContactos.add(lbl_etiqueta1); // Agrega la etiqueta al panel de contenido.
+
 		JLabel lbl_etiqueta2 = new JLabel("TELEFONO:");
 		lbl_etiqueta2.setBounds(25, 80, 89, 13);
 		lbl_etiqueta2.setFont(new Font("Tahoma", Font.BOLD, 15));
-		contentPane.add(lbl_etiqueta2);
-		
+		panelContactos.add(lbl_etiqueta2);
+
 		JLabel lbl_etiqueta3 = new JLabel("EMAIL:");
 		lbl_etiqueta3.setBounds(25, 122, 89, 13);
 		lbl_etiqueta3.setFont(new Font("Tahoma", Font.BOLD, 15));
-		contentPane.add(lbl_etiqueta3);
-		
+		panelContactos.add(lbl_etiqueta3);
+
 		JLabel lbl_etiqueta4 = new JLabel("BUSCAR POR NOMBRE:");
 		lbl_etiqueta4.setFont(new Font("Tahoma", Font.BOLD, 15));
 		lbl_etiqueta4.setBounds(25, 661, 192, 13);
-		contentPane.add(lbl_etiqueta4);
+		panelContactos.add(lbl_etiqueta4);
 		
 		// Creación y configuración de campos de texto para ingresar nombres, teléfonos y correos electrónicos.
 		txt_nombres = new JTextField(); // Campo de texto para nombres.
 		txt_nombres.setBounds(124, 28, 427, 31); // Define la posición y tamaño del campo de texto.
 		txt_nombres.setFont(new Font("Tahoma", Font.PLAIN, 15)); // Configura la fuente del campo de texto.
-		contentPane.add(txt_nombres); // Agrega el campo de texto al panel de contenido.
+		panelContactos.add(txt_nombres); // Agrega el campo de texto al panel de contenido.
 		txt_nombres.setColumns(10); // Establece el número de columnas para el campo de texto.
-		
+
 		txt_telefono = new JTextField();
 		txt_telefono.setBounds(124, 69, 427, 31);
 		txt_telefono.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		txt_telefono.setColumns(10);
-		contentPane.add(txt_telefono);
-		
+		panelContactos.add(txt_telefono);
+
 		txt_email = new JTextField();
 		txt_email.setBounds(124, 110, 427, 31);
 		txt_email.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		txt_email.setColumns(10);
-		contentPane.add(txt_email);
-		
+		panelContactos.add(txt_email);
+
 		txt_buscar = new JTextField();
 		txt_buscar.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		txt_buscar.setColumns(10);
 		txt_buscar.setBounds(212, 650, 784, 31);
-		contentPane.add(txt_buscar);
+		panelContactos.add(txt_buscar);
 		
 		// Creación y configuración de una casilla de verificación para indicar si un contacto es favorito.
 		chb_favorito = new JCheckBox("CONTACTO FAVORITO"); // Casilla de verificación.
 		chb_favorito.setBounds(24, 170, 193, 21); // Define la posición y tamaño de la casilla de verificación.
 		chb_favorito.setFont(new Font("Tahoma", Font.PLAIN, 15)); // Configura la fuente de la casilla de verificación.
-		contentPane.add(chb_favorito); // Agrega la casilla de verificación al panel de contenido.
+		panelContactos.add(chb_favorito); // Agrega la casilla de verificación al panel de contenido.
 
-		
+
 		cmb_categoria = new JComboBox(); // Crea un nuevo JComboBox para permitir la selección de categorías.
 		cmb_categoria.setBounds(300, 167, 251, 31); // Establece la posición y el tamaño del JComboBox en el panel.
-		contentPane.add(cmb_categoria); // Agrega el JComboBox al panel de contenido.
+		panelContactos.add(cmb_categoria); // Agrega el JComboBox al panel de contenido.
 
 		// Arreglo que contiene las categorías disponibles.
 		String[] categorias = {"Elija una Categoria", "Familia", "Amigos", "Trabajo"};
@@ -134,26 +157,96 @@ public class ventana extends JFrame {
 		btn_add = new JButton("AGREGAR"); // Crea un nuevo botón con el texto "AGREGAR".
 		btn_add.setFont(new Font("Tahoma", Font.PLAIN, 15)); // Configura la fuente del botón.
 		btn_add.setBounds(601, 70, 125, 65); // Establece la posición y el tamaño del botón en el panel.
-		contentPane.add(btn_add); // Agrega el botón al panel de contenido.
-		
+		panelContactos.add(btn_add); // Agrega el botón al panel de contenido.
+
 		btn_modificar = new JButton("MODIFICAR");
 		btn_modificar.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		btn_modificar.setBounds(736, 70, 125, 65);
-		contentPane.add(btn_modificar);
-		
+		panelContactos.add(btn_modificar);
+
 		btn_eliminar = new JButton("ELIMINAR");
 		btn_eliminar.setFont(new Font("Tahoma", Font.PLAIN, 15));
 		btn_eliminar.setBounds(871, 69, 125, 65);
-		contentPane.add(btn_eliminar);
+		panelContactos.add(btn_eliminar);
 		
 		lst_contactos = new JList(); // Crea una nueva JList para mostrar la lista de contactos.
 		lst_contactos.setFont(new Font("Tahoma", Font.PLAIN, 15)); // Configura la fuente de la JList.
 		lst_contactos.setSelectionMode(ListSelectionModel.SINGLE_SELECTION); // Establece el modo de selección a un solo elemento.
-		lst_contactos.setBounds(25, 242, 971, 398); // Establece la posición y el tamaño de la JList en el panel.
+		lst_contactos.setBounds(25, 242, 971, 150); // Establece la posición y el tamaño de la JList en el panel.
 
 		scrLista = new JScrollPane(lst_contactos); // Crea un JScrollPane para permitir el desplazamiento de la JList.
-		scrLista.setBounds(25, 242, 971, 398); // Establece la posición y el tamaño del JScrollPane en el panel.
-		contentPane.add(scrLista); // Agrega el JScrollPane al panel de contenido.
+		scrLista.setBounds(25, 242, 971, 150); // Establece la posición y el tamaño del JScrollPane en el panel.
+		panelContactos.add(scrLista); // Agrega el JScrollPane al panel de contenido.
+
+		String[] columnas = {"Nombre", "Teléfono", "Email", "Categoría", "Favorito"};
+		modeloTabla = new DefaultTableModel(columnas, 0);
+		tabla_contactos = new JTable(modeloTabla);
+		JScrollPane scrollTabla = new JScrollPane(tabla_contactos);
+		scrollTabla.setBounds(25, 410, 971, 200);
+		panelContactos.add(scrollTabla);
+
+		barraProgreso = new JProgressBar();
+		barraProgreso.setBounds(25, 620, 971, 25);
+		barraProgreso.setStringPainted(true);
+		barraProgreso.setVisible(false);
+		panelContactos.add(barraProgreso);
+
+		tabbedPane.addTab("Contactos", panelContactos);
+
+		JPanel panelEstadisticas = new JPanel();
+		panelEstadisticas.setLayout(null);
+
+		JLabel lblTitulo = new JLabel("ESTADISTICAS DE CONTACTOS");
+		lblTitulo.setFont(new Font("Tahoma", Font.BOLD, 18));
+		lblTitulo.setBounds(300, 30, 400, 30);
+		panelEstadisticas.add(lblTitulo);
+
+		JLabel lbl1 = new JLabel("Total de contactos:");
+		lbl1.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		lbl1.setBounds(200, 100, 200, 25);
+		panelEstadisticas.add(lbl1);
+
+		lbl_total_contactos = new JLabel("0");
+		lbl_total_contactos.setFont(new Font("Tahoma", Font.BOLD, 24));
+		lbl_total_contactos.setBounds(450, 95, 100, 30);
+		panelEstadisticas.add(lbl_total_contactos);
+
+		JLabel lbl2 = new JLabel("Contactos favoritos:");
+		lbl2.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		lbl2.setBounds(200, 150, 200, 25);
+		panelEstadisticas.add(lbl2);
+
+		lbl_total_favoritos = new JLabel("0");
+		lbl_total_favoritos.setFont(new Font("Tahoma", Font.BOLD, 24));
+		lbl_total_favoritos.setBounds(450, 145, 100, 30);
+		panelEstadisticas.add(lbl_total_favoritos);
+
+		JLabel lbl3 = new JLabel("Por categoría:");
+		lbl3.setFont(new Font("Tahoma", Font.BOLD, 14));
+		lbl3.setBounds(200, 220, 200, 25);
+		panelEstadisticas.add(lbl3);
+
+		lbl_total_familia = new JLabel("Familia: 0");
+		lbl_total_familia.setFont(new Font("Tahoma", Font.PLAIN, 13));
+		lbl_total_familia.setBounds(230, 255, 200, 25);
+		panelEstadisticas.add(lbl_total_familia);
+
+		lbl_total_amigos = new JLabel("Amigos: 0");
+		lbl_total_amigos.setFont(new Font("Tahoma", Font.PLAIN, 13));
+		lbl_total_amigos.setBounds(230, 285, 200, 25);
+		panelEstadisticas.add(lbl_total_amigos);
+
+		lbl_total_trabajo = new JLabel("Trabajo: 0");
+		lbl_total_trabajo.setFont(new Font("Tahoma", Font.PLAIN, 13));
+		lbl_total_trabajo.setBounds(230, 315, 200, 25);
+		panelEstadisticas.add(lbl_total_trabajo);
+
+		btn_exportar = new JButton("Exportar a CSV");
+		btn_exportar.setFont(new Font("Tahoma", Font.PLAIN, 14));
+		btn_exportar.setBounds(350, 400, 200, 40);
+		panelEstadisticas.add(btn_exportar);
+
+		tabbedPane.addTab("Estadísticas", panelEstadisticas);
 		
 		//Instanciar el controlador para usar el delegado
 		logica_ventana lv=new logica_ventana(this);
